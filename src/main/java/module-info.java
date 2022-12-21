@@ -4,5 +4,6 @@ module com.example.iclab03 {
 
 
     opens com.example.iclab03 to javafx.fxml;
-    exports com.example.iclab03;
+    exports com.example.iclab03.server;
+    exports com.example.iclab03.client;
 }
