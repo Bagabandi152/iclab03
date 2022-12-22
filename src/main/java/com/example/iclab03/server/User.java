@@ -42,5 +42,12 @@ public class User {
             clientMap.get(clientName).writeUTF(name + " : " + msg);
         }
     }
+
+    public synchronized void sendFile(String fileName, String name) throws Exception {
+        str = name + " : " + fileName;
+        Platform.runLater(() -> {
+            ChatServer.files.setText(ChatServer.files.getText() + "\n" + str);
+        });
+    }
 }
 

@@ -25,6 +25,20 @@ public class ChatService implements Runnable {
             while (true) {
                 String msg = in.readUTF();
                 user.sendMsg(msg, name);
+
+                int fileNameLength = in.readInt();
+                if (fileNameLength > 0) {
+                    byte[] fileNameBytes = new byte[fileNameLength];
+                    in.readFully(fileNameBytes, 0, fileNameLength);
+                    String fileName = new String(fileNameBytes);
+
+                    int fileContentLength = in.readInt();
+                    if (fileContentLength > 0) {
+                        byte[] fileContentBytes = new byte[fileContentLength];
+                        in.readFully(fileContentBytes, 0, fileContentLength);
+                        user.sendFile(fileName, name);
+                    }
+                }
             }
         } catch (Exception e) {
             user.removeClient(this.name);

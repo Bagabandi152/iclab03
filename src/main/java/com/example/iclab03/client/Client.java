@@ -15,6 +15,8 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 public class Client extends Application {
@@ -26,6 +28,10 @@ public class Client extends Application {
     private Button submitName = new Button("Join Chatroom");
 
     public static String name = "Default name";
+
+    private Button uploadFileBtn = new Button("upload file"), sendBtn = new Button("send");
+
+    private final File[] sendFiles = new File[1];
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -42,7 +48,7 @@ public class Client extends Application {
 
         scene1 = new Scene(root1);
         primaryStage.setScene(scene1);
-        primaryStage.setTitle("Chat Room");
+        primaryStage.setTitle("Chatting Room");
         primaryStage.show();
 
         ConnectServer connectServer = new ConnectServer();
@@ -59,7 +65,13 @@ public class Client extends Application {
             BorderPane root2 = new BorderPane();
             root2.setPrefSize(350, 400);
             root2.setCenter(layout);
-            root2.setBottom(enterMessage);
+            HBox hBox = new HBox();
+            hBox.setSpacing(4);
+            hBox.setPadding(new Insets(4, 0, 4, 0));
+            hBox.setAlignment(Pos.CENTER);
+            enterMessage.setPrefWidth(220);
+            hBox.getChildren().addAll(enterMessage, uploadFileBtn, sendBtn);
+            root2.setBottom(hBox);
 
             scene2 = new Scene(root2);
             primaryStage.setScene(scene2);
@@ -74,7 +86,48 @@ public class Client extends Application {
                 } catch (IOException e1) {
                     e1.printStackTrace();
                 }
-                enterMessage.setText(""); //clear the TextField
+                enterMessage.setText("");
+            }
+        });
+
+        sendBtn.setOnAction(event -> {
+            DataOutputStream out = connectServer.getDataOutputStream();
+            String msg = Client.enterMessage.getText();
+            try {
+                out.writeUTF(msg);
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+            enterMessage.setText("");
+
+            if (sendFiles.length > 0 && sendFiles[0] != null) {
+                try {
+                    FileInputStream fileInputStream = new FileInputStream(sendFiles[0].getAbsolutePath());
+
+                    String fileName = sendFiles[0].getName();
+                    byte[] fileNameBytes = fileName.getBytes();
+
+                    byte[] fileContentBytes = new byte[(int) sendFiles[0].length()];
+                    fileInputStream.read(fileContentBytes);
+
+                    out.writeInt(fileNameBytes.length);
+                    out.write(fileNameBytes);
+
+                    out.writeInt(fileContentBytes.length);
+                    out.write(fileContentBytes);
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+        });
+
+        uploadFileBtn.setOnAction(event -> {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Choose a file to send");
+
+            if (fileChooser.showOpenDialog(null) != null) {
+                sendFiles[0] = fileChooser.showOpenDialog(null);
+                System.out.println(sendFiles[0].getName());
             }
         });
     }
@@ -103,7 +156,7 @@ class ConnectServer implements Runnable {
             out = new DataOutputStream(socket.getOutputStream());
 
             out.writeUTF(Client.name);
-            System.out.println(Client.name + " : successfully joined the chat room: ");
+            System.out.println(Client.name + " : successfully joined the chat room; ");
 
         } catch (IOException e) {
             e.printStackTrace();

@@ -9,6 +9,7 @@ import javafx.stage.Stage;
 public class ChatServer extends Application {
 
     public static Label logs = new Label("[Chatting Server Logs]");
+    public static Label files = new Label("");
 
     public static void main(String[] args) {
         launch(args);
